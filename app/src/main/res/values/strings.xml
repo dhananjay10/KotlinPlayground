@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">KotlinPlayGround</string>
+    <string name="random_articles">Random Articles</string>
+</resources>
