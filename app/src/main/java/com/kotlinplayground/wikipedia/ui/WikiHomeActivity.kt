@@ -1,43 +1,55 @@
 package com.kotlinplayground.wikipedia.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.widget.Toolbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kotlinplayground.R
-import com.kotlinplayground.tmdb.ApiClient
-import com.kotlinplayground.wikipedia.adapters.WikiListAdapter
-import org.alexdunn.wikipedia.models.WikiResult
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.kotlinplayground.wikipedia.ui.fragment.ExploreFragment
+import com.kotlinplayground.wikipedia.ui.fragment.FavoritesFragment
+import com.kotlinplayground.wikipedia.ui.fragment.HistoryFragment
 
 class WikiHomeActivity : AppCompatActivity() {
 
-    var rvWiki: RecyclerView? = null
-    var wikiListAdapter: WikiListAdapter? = WikiListAdapter()
+    private val exploreFragment: ExploreFragment = ExploreFragment.newInstance()
+    private val historyFragment: HistoryFragment = HistoryFragment.newInstance()
+    private val favoritesFragment: FavoritesFragment = FavoritesFragment.newInstance()
+
+    private val onNavigationChangeListener =
+        BottomNavigationView.OnNavigationItemSelectedListener { item ->
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+
+            when (item.itemId) {
+                R.id.navigation_explore -> transaction.replace(
+                    R.id.fragment_container,
+                    exploreFragment
+                )
+                R.id.navigation_favorites -> transaction.replace(
+                    R.id.fragment_container,
+                    favoritesFragment
+                )
+                R.id.navigation_history -> transaction.replace(
+                    R.id.fragment_container,
+                    historyFragment
+                )
+            }
+            transaction.commit()
+            true
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wiki_home)
-        rvWiki = findViewById(R.id.rv_wiki)
-        rvWiki!!.layoutManager = LinearLayoutManager(this)
-        rvWiki!!.adapter = wikiListAdapter
 
-        val call = ApiClient.instance.
-            getRasndomArticles()
-        call.enqueue(object: Callback<WikiResult>{
-            override fun onResponse(call: Call<WikiResult>, response: Response<WikiResult>) {
-                wikiListAdapter!!.wikiList.clear()
-                wikiListAdapter!!.wikiList.addAll(response.body()!!.query!!.pages)
-                wikiListAdapter!!.notifyDataSetChanged()
-            }
+        val toolBar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolBar)
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.navigation)
+        bottomNavigationView.setOnNavigationItemSelectedListener(onNavigationChangeListener)
 
-            override fun onFailure(call: Call<WikiResult>, t: Throwable) {
-                Log.d("@@", "Failure " + t.message)
-            }
-        })
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.add(R.id.fragment_container, exploreFragment)
+        transaction.commit()
 
     }
 }
